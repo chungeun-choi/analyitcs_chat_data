@@ -1,15 +1,16 @@
 import sys
 
+sys.path.append("/Users/cucuridas/Desktop/analyitcs_chat_data")
 sys.path.append("/Users/cucuridas/Desktop/wanted_chat")
 
-from analytics import *
-from preprocess import Preprocess
+from src.analytics import *
+from src.preprocess import Preprocess
 import pandas as pd
 
 FILEDINFO = ["time_stamp", "user_name", "target", "target_range", "user_chat_data"]
 
 if __name__ == "__main__":
-    mokup_obj = Preprocess("/Users/cucuridas/Desktop/wanted_chat/data").preprocessing()
+    mokup_obj = Preprocess("/Users/cucuridas/Desktop/analyitcs_chat_data/data").preprocessing()
 
     # Test function - convert
     test_obj = ConvertDataFrame.convert(FILEDINFO, mokup_obj)
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     test_obj3 = WordAnalytics().extractKonlpy(test_obj, "user_chat_data")
 
     # Test function - showWordCloud
-    # WordAnalytics.showWordCloud(test_obj3)
+    WordAnalytics.showWordCloud(test_obj3)
 
     # Test function - showBarGraph
-    WordAnalytics.showBarGraph(test_obj3)
+    # WordAnalytics.showBarGraph(test_obj3)

@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-
+import os
 
 from krwordrank.word import KRWordRank
 from konlpy.tag import *
@@ -11,6 +11,10 @@ import numpy as np
 from wordcloud import WordCloud
 from wordcloud import ImageColorGenerator
 import matplotlib.font_manager as fm
+from src.commonUtil import Common
+
+
+WORKING_DIR = Common.getDirPath()
 
 
 class ConvertDataFrame:
@@ -85,9 +89,7 @@ class WordAnalytics:
                 return_words_frequency[key] = value
 
         # 정렬
-        print_value = sorted(
-            return_words_frequency.items(), key=lambda x: x[1], reverse=True
-        )
+        print_value = sorted(return_words_frequency.items(), key=lambda x: x[1], reverse=True)
         # 출력 및 리턴
         print(print_value)
         return return_words_frequency
@@ -106,17 +108,27 @@ class WordAnalytics:
         mpl.rcParams["axes.unicode_minus"] = False
 
         plt.figure()
-        # plt.imshow(gen)
-        # plt.imshow(gen)
+        plt.imshow(gen)
 
     def showBarGraph(frequency_words: dict):
+        """
+        집계한 단어 데이터를 막대그래프를 통해 나타냅니다
+        figure를 통해 화면에 띄운뒤 특정 디렉토리에 저장합니다
+
+        Args:
+            frequency_words (dict): 단어:빈도수의 dict의 집합
+        """
         plt.rcParams["font.family"] = "AppleGothic"
-        tuple_data = sorted(frequency_words.items(), key=lambda x: x[1], reverse=True)
+        tuple_data = sorted(frequency_words.items(), key=lambda x: x[1], reverse=True)[:20]
         column_data = ["words", "count"]
         df = ConvertDataFrame.convert(column_data, tuple_data)
 
-        plt.bar(range(df["count"]), df["count"])
-        ax = plt.subplot()
-        ax.set_xticklabels(df["words"], rotation=50)
+        label = df["words"]
+        fig = df.plot(kind="bar", x="words", fontsize=15).get_figure()
 
-        plt.show()
+        report_path = Common.makeDir(WORKING_DIR)
+        WordAnalytics.saveGraph(fig, report_path)
+        # bar_obj = df.plot.bar(x="words", rot=0)
+
+    def saveGraph(graph: object, path: str):
+        graph.savefig(path + "/barGraph.pdf")

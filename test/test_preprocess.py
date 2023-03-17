@@ -6,7 +6,7 @@ PATH = "/Users/cucuridas/Desktop/wanted_chat/"
 sys.path.append(PATH)
 
 
-from preprocess import Preprocess
+from src.preprocess import Preprocess
 
 FILENAME = "meeting_saved_chat_0306.txt"
 
