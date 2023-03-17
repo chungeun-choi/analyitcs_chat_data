@@ -1,17 +1,40 @@
 import re
+import os
 
 
-class Preprocess:
+class Find:
+    """
+    전처리하기위한 원본 데이터를 찾습니다
+    """
+
+    def __init__(self, file_path: str):
+        self.file_path: str = file_path
+        self.FindFile()
+
+    def FindFile(self):
+        """
+        객체 생성 후 입력 받는 파일 위치의 파일 리스트를 찾습니다
+
+        Returns:
+            file_list(list[str]) : 파일 위치의 파일 리스트
+        """
+
+        self.file_list = os.listdir(self.file_path)
+        return self.file_list
+
+
+class Preprocess(Find):
     """
     해당 클래스 정규표현식을 통해 zoom meeting chating 데이터를 파싱하는 클래스입니다
     """
 
-    def __init__(self) -> None:
+    def __init__(self, file_path: str):
+        super().__init__(file_path)
         self.split_pattern = r"\d{2}:\d{2}:\d{2}"
         self.parse_pattern = r"(?P<timeStamp>\d{2}:\d{2}:\d{2}) 시작 (?P<userName>.*?) (?P<target>[송신자|수신자]+) (?P<targetRange>\w+):(?P<userChatData>[\W|\w]+)"
         self.file_data = None
 
-    def load_file(self, file_path: str):
+    def load_file(self, file: str):
         """
         파일을 읽어와 원하는 형태의 리스트 데이터로 적재합니다
 
@@ -22,8 +45,12 @@ class Preprocess:
             self.filed_data(list[str]): 특정 기준으로 잘려져 나온 list 데이터
 
         """
-        with open(file_path, "r") as f:
-            self.file_data = self.split_data(f.read())
+        with open(file, "r") as f:
+            if self.file_data == None:
+                self.file_data = self.split_data(f.read())
+            else:
+                self.file_data + self.split_data(f.read())
+
         return self.file_data
 
     def split_data(self, file_data: str):
@@ -38,8 +65,7 @@ class Preprocess:
         """
         split_indices = [m.start(0) for m in re.finditer(self.split_pattern, file_data)]
         outputs = [
-            file_data[i:j].strip()
-            for i, j in zip(split_indices, split_indices[1:] + [None])
+            file_data[i:j].strip() for i, j in zip(split_indices, split_indices[1:] + [None])
         ]
         return outputs
 
@@ -57,17 +83,17 @@ class Preprocess:
         parse_data = parse_obj.groups()
         return parse_data
 
-    def preprocessing(self, file_path: str):
+    def preprocessing(self):
         """
         파일 데이터를 읽어와 정규표현식을 통해 데이터 전처리 작업을 진행합니다
 
-        input:
-            file_path(str): 전처리하고자하는 파일의 위치를 입력 받습니다
 
         return:
             preprocessing_data(list(tupe(str))): 전처리가되어 파싱된 데이터들의 집합 리스트를 return 합니다
         """
-        self.load_file(file_path)
+        for file in self.file_list:
+            absolute_path = self.file_path + file
+            self.load_file(absolute_path)
         preprocessing_data = list(map(self.parse, self.file_data))
 
         return preprocessing_data
