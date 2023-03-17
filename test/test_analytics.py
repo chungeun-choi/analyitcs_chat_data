@@ -9,9 +9,7 @@ import pandas as pd
 FILEDINFO = ["time_stamp", "user_name", "target", "target_range", "user_chat_data"]
 
 if __name__ == "__main__":
-    mokup_obj = Preprocess().preprocessing(
-        "/Users/cucuridas/Desktop/wanted_chat/data/meeting_saved_chat 복사본.txt"
-    )
+    mokup_obj = Preprocess("/Users/cucuridas/Desktop/wanted_chat/data").preprocessing()
 
     # Test function - convert
     test_obj = ConvertDataFrame.convert(FILEDINFO, mokup_obj)

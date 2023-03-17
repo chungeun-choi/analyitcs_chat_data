@@ -31,7 +31,8 @@ class Preprocess(Find):
     def __init__(self, file_path: str):
         super().__init__(file_path)
         self.split_pattern = r"\d{2}:\d{2}:\d{2}"
-        self.parse_pattern = r"(?P<timeStamp>\d{2}:\d{2}:\d{2}) 시작 (?P<userName>.*?) (?P<target>[송신자|수신자]+) (?P<targetRange>\w+):(?P<userChatData>[\W|\w]+)"
+        self.parse_pattern_mac = r"(?P<timeStamp>\d{2}:\d{2}:\d{2}) 시작 (?P<userName>.*?) (?P<target>[송신자|수신자]+) (?P<targetRange>\w+):(?P<userChatData>[\W|\w]+)"
+        self.parse_pattern_win = r"(?P<timeStamp>\d{2}:\d{2}:\d{2}) (?P<userName>.*?) (?P<target>[송신자|수신자]+) (?P<targetRange>\w+):(?P<userChatData>[\W|\w]+)"
         self.file_data = None
 
     def load_file(self, file: str):
@@ -45,13 +46,21 @@ class Preprocess(Find):
             self.filed_data(list[str]): 특정 기준으로 잘려져 나온 list 데이터
 
         """
-        with open(file, "r") as f:
-            if self.file_data == None:
-                self.file_data = self.split_data(f.read())
-            else:
-                self.file_data + self.split_data(f.read())
+        if Preprocess.check_file_type(file):
+            absolute_path = "{}/{}".format(self.file_path, file)
+            with open(absolute_path, "r") as f:
+                if self.file_data == None:
+                    self.file_data = self.split_data(f.read())
+                else:
+                    self.file_data = self.file_data + self.split_data(f.read())
 
-        return self.file_data
+            return self.file_data
+
+    def check_file_type(file):
+        if file.split(".")[1] == "txt":
+            return True
+        else:
+            return False
 
     def split_data(self, file_data: str):
         """
@@ -65,7 +74,8 @@ class Preprocess(Find):
         """
         split_indices = [m.start(0) for m in re.finditer(self.split_pattern, file_data)]
         outputs = [
-            file_data[i:j].strip() for i, j in zip(split_indices, split_indices[1:] + [None])
+            file_data[i:j].strip()
+            for i, j in zip(split_indices, split_indices[1:] + [None])
         ]
         return outputs
 
@@ -79,7 +89,9 @@ class Preprocess(Find):
         return:
             parse_data(tuple(str)): regex에 의해서 파싱한 데이터들의 집합(tuple)
         """
-        parse_obj = re.match(self.parse_pattern, original_data)
+        parse_obj = re.match(self.parse_pattern_mac, original_data)
+        if parse_obj == None:
+            parse_obj = re.match(self.parse_pattern_win, original_data)
         parse_data = parse_obj.groups()
         return parse_data
 
@@ -92,8 +104,7 @@ class Preprocess(Find):
             preprocessing_data(list(tupe(str))): 전처리가되어 파싱된 데이터들의 집합 리스트를 return 합니다
         """
         for file in self.file_list:
-            absolute_path = self.file_path + file
-            self.load_file(absolute_path)
+            self.load_file(file)
         preprocessing_data = list(map(self.parse, self.file_data))
 
         return preprocessing_data
