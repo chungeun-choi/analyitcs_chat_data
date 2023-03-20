@@ -95,20 +95,17 @@ class WordAnalytics:
         return return_words_frequency
 
     def showWordCloud(frequency_words: dict):
-        wc = WordCloud(width=1000, height=1000, scale=3.0, max_font_size=250)
-        gen = wc.generate_from_frequencies(frequency_words)
-
-        MAC_PATH = "/System/Library/Fonts/Supplementa/Nanum Gothic.ttf"
-
-        font = fm.FontProperties(fname=MAC_PATH, size=9)
-        plt.rcParams["font.family"] = "AppleGothic"
-        print(mpl.rcParams["font.family"])
-
-        # plt.rc("font", family="AppleGothic")
-        mpl.rcParams["axes.unicode_minus"] = False
+        MAC_PATH = "/System/Library/Fonts/Supplemental/AppleGothic.ttf"
+        wc = WordCloud(width=1000, height=1000, scale=3.0, max_font_size=250, font_path=MAC_PATH)
+        # wc = WordCloud(width=1000, height=1000, scale=3.0, max_font_size=250)
+        words_data = dict(sorted(frequency_words.items(), key=lambda x: x[1], reverse=True)[:25])
+        gen = wc.generate_from_frequencies(words_data)
 
         plt.figure()
         plt.imshow(gen)
+
+        report_path = Common.makeDir(WORKING_DIR)
+        WordAnalytics.saveImage(gen, report_path)
 
     def showBarGraph(frequency_words: dict):
         """
@@ -132,3 +129,6 @@ class WordAnalytics:
 
     def saveGraph(graph: object, path: str):
         graph.savefig(path + "/barGraph.pdf")
+
+    def saveImage(image: object, path: str):
+        image.to_file(path + "/wordCloud.png")
