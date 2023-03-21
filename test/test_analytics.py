@@ -25,7 +25,10 @@ if __name__ == "__main__":
     test_obj3 = WordAnalytics().extractKonlpy(test_obj, "user_chat_data")
 
     # Test function - showWordCloud
-    WordAnalytics.showWordCloud(test_obj3)
+    WordAnalytics.wordcloudAnalysis(test_obj3)
 
     # Test function - showBarGraph
-    # WordAnalytics.showBarGraph(test_obj3)
+    WordAnalytics.barplotAnalysis(test_obj3)
+
+    # Test function - showPieGraph
+    WordAnalytics.pieplotAnalysis(test_obj3)

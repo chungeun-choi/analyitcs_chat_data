@@ -1,20 +1,12 @@
-import pandas as pd
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import os
-
 from krwordrank.word import KRWordRank
 from konlpy.tag import *
-from matplotlib import rc
 from collections import Counter
-import numpy as np
 from wordcloud import WordCloud
-from wordcloud import ImageColorGenerator
-import matplotlib.font_manager as fm
 from src.commonUtil import Common
-
-
-WORKING_DIR = Common.getDirPath()
+from src.graph import *
+import pandas as pd
+import matplotlib.pyplot as plt
+import itertools
 
 
 class ConvertDataFrame:
@@ -42,7 +34,7 @@ class Report:
     pass
 
 
-STOPWORKDS = ["네", "완료", "혹시"]
+STOPWORDS = ["네", "완료", "혹시", "수고", "린지", "네네"]
 
 
 class WordAnalytics:
@@ -50,12 +42,13 @@ class WordAnalytics:
     단어를 통해 시각화하는 클래스이며 wordCloud를 통해 시각화를 checkFrequency를 통해 단어의 빈도를 확인합니다
     """
 
-    def __init__(self) -> None:
-        self.wordrank_extractor = KRWordRank(
-            min_count=3,  # 단어의 최소 출현 빈도수 (그래프 생성 시)
-            max_length=15,  # 단어의 최대 길이
-            verbose=True,
-        )
+    def __init__(self, word_rank: bool = False) -> None:
+        if word_rank:
+            self.wordrank_extractor = KRWordRank(
+                min_count=3,  # 단어의 최소 출현 빈도수 (그래프 생성 시)
+                max_length=15,  # 단어의 최대 길이
+                verbose=True,
+            )
         self.okt_obj = Okt()
 
     def extractKrwordrank(self, dataframe: pd.DataFrame, text_filed_name: str):
@@ -89,25 +82,26 @@ class WordAnalytics:
                 return_words_frequency[key] = value
 
         # 정렬
-        print_value = sorted(return_words_frequency.items(), key=lambda x: x[1], reverse=True)
+        sort_value = sorted(return_words_frequency.items(), key=lambda x: x[1], reverse=True)
         # 출력 및 리턴
-        print(print_value)
+        print(sort_value)
         return return_words_frequency
 
-    def showWordCloud(frequency_words: dict):
+    def wordcloudAnalysis(frequency_words: dict):
         MAC_PATH = "/System/Library/Fonts/Supplemental/AppleGothic.ttf"
         wc = WordCloud(width=1000, height=1000, scale=3.0, max_font_size=250, font_path=MAC_PATH)
-        # wc = WordCloud(width=1000, height=1000, scale=3.0, max_font_size=250)
-        words_data = dict(sorted(frequency_words.items(), key=lambda x: x[1], reverse=True)[:25])
-        gen = wc.generate_from_frequencies(words_data)
+
+        sort_data_dict = Common.excludeSort(frequency_words, STOPWORDS, True)
+        slice_data = dict(itertools.islice(sort_data_dict.items(), 25))
+        gen = wc.generate_from_frequencies(slice_data)
 
         plt.figure()
         plt.imshow(gen)
 
         report_path = Common.makeDir(WORKING_DIR)
-        WordAnalytics.saveImage(gen, report_path)
+        Graph.saveImage(gen, report_path)
 
-    def showBarGraph(frequency_words: dict):
+    def barplotAnalysis(frequency_words: dict):
         """
         집계한 단어 데이터를 막대그래프를 통해 나타냅니다
         figure를 통해 화면에 띄운뒤 특정 디렉토리에 저장합니다
@@ -115,20 +109,22 @@ class WordAnalytics:
         Args:
             frequency_words (dict): 단어:빈도수의 dict의 집합
         """
-        plt.rcParams["font.family"] = "AppleGothic"
-        tuple_data = sorted(frequency_words.items(), key=lambda x: x[1], reverse=True)[:20]
+        sort_data = Common.excludeSort(frequency_words, STOPWORDS)[:25]
         column_data = ["words", "count"]
-        df = ConvertDataFrame.convert(column_data, tuple_data)
+        df = ConvertDataFrame.convert(column_data, sort_data)
 
-        label = df["words"]
-        fig = df.plot(kind="bar", x="words", fontsize=15).get_figure()
+        Graph().makeGraph(df, "bar")
 
-        report_path = Common.makeDir(WORKING_DIR)
-        WordAnalytics.saveGraph(fig, report_path)
-        # bar_obj = df.plot.bar(x="words", rot=0)
+    def pieplotAnalysis(frequency_words: dict):
+        """
+        집계한 단어 데이터를 파이그래프를 통해 나타냅니다
+        figure를 통해 화면에 띄운뒤 특정 디렉토리에 저장합니다
 
-    def saveGraph(graph: object, path: str):
-        graph.savefig(path + "/barGraph.pdf")
+        Args:
+            frequency_words (dict): 단어:빈도수의 dict의 집합
+        """
+        sort_data = Common.excludeSort(frequency_words, STOPWORDS)[:25]
+        column_data = ["words", "count"]
+        df = ConvertDataFrame.convert(column_data, sort_data)
 
-    def saveImage(image: object, path: str):
-        image.to_file(path + "/wordCloud.png")
+        Graph().makeGraph(df, "pie")

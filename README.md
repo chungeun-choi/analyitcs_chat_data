@@ -100,3 +100,37 @@
     > 
     
 4. 시각화 도구를 활용한 Keyword 확인 및 빈도 확인
+
+분석된 보면 데이터와 완료, 분석이라는 단어와 함께 제외시켜도 될만한 고생이라는 단어와 수고라는 단어가 보이네요… 또한 린지, 네네와 같은 불필요한 단어 역시 집계된 것이 보입니다
+
+- WordCloud 모듈을 사용하여 이미지 저장
+    
+    채팅 데이터에의 가장 많이 언급된 단어 25개를 기준으로 wordCloud를 생성 하였습니다 
+    
+
+![https://user-images.githubusercontent.com/65060314/226248766-c40a7cc3-6470-4489-96cb-c1168097ebee.png](https://user-images.githubusercontent.com/65060314/226248766-c40a7cc3-6470-4489-96cb-c1168097ebee.png)
+
+- 막대 그래프를 사용하여 시각화 후 pdf 저장
+
+![https://user-images.githubusercontent.com/65060314/226249325-4f608bfb-e93c-490a-a4a4-ec52a352a9a2.png](https://user-images.githubusercontent.com/65060314/226249325-4f608bfb-e93c-490a-a4a4-ec52a352a9a2.png)
+
+1. stopwords를 통한 제외단어 설정
+
+‘4번’ 항목에서 언급한 제외시킬 단어들을 Global 변수에 지정하여 줍니다
+
+![https://user-images.githubusercontent.com/65060314/226489405-8dace775-05ca-4422-bb70-7fe236c941e5.png](https://user-images.githubusercontent.com/65060314/226489405-8dace775-05ca-4422-bb70-7fe236c941e5.png)
+
+excludeSort 함수를 만들어 STOPWORDS에 지정되어진 값을 제외시키도록 합니다
+
+```yaml
+def excludeSort(data: dict, stopwords: list, to_dict: bool = False):
+        exclude_sort_value = [
+            (word, score)
+            for word, score in sorted(data.items(), key=lambda x: -x[1])
+            if not (word in stopwords)
+        ]
+        if to_dict:
+            return dict(exclude_sort_value)
+
+        return exclude_sort_value
+```
